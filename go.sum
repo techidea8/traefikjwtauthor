@@ -1,0 +1,4 @@
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
+github.com/techidea8/codectl v0.0.0-20240907101556-b230c7c5b729 h1:YmjZ+QCzAYMTeRXnP/dAAjaxM22vZI8zmlQSKRoejzs=
+github.com/techidea8/codectl v0.0.0-20240907101556-b230c7c5b729/go.mod h1:raF4HJIrt1Dz4P7sjT1UPSgU4UH+Fg9EdqlAQJBa8tM=

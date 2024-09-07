@@ -1,0 +1,8 @@
+displayName: Auth use Jwt
+type: middleware
+import: github.com/techidea8/traefikjwtauthor
+summary: geall jwt author as token parse and builder. 
+testData:
+  whiteList:
+    - "/login"
+  secret: rootme@123
