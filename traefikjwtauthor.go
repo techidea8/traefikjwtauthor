@@ -2,6 +2,8 @@ package traefikjwtauthor
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -68,9 +70,14 @@ func (r *JwtAuthor) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			pass = false
 		}
 	}
+	fmt.Println("uri=>", uri, pass)
 	if pass {
 		r.next.ServeHTTP(rw, req)
 	} else {
+		json.NewEncoder(rw).Encode(map[string]any{
+			"code": 403,
+			"msg":  "please login",
+		})
 		rw.WriteHeader(http.StatusForbidden)
 	}
 }
