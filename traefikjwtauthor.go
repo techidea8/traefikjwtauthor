@@ -10,16 +10,19 @@ import (
 	"github.com/techidea8/codectl/infra/token"
 )
 
-const (
+// 不要设置为const
+// 设置成cost 后初始化将无法覆盖
+var (
 	TokenParam    string = "Authorization"
 	TokenPrefix   string = ""
+	HeaderPrefix  string = "X-Turing-"
 	DefaultSecret string = "turingdance@1232w3e4r"
 )
 
 // 系统会将这些东西传递到第三方
 type Config struct {
-	Param        string   `json:"param,omitempty" toml:"param,omitempty" yaml:"param,omitempty"`
-	Secrect      string   `json:"secret,omitempty" toml:"secret,omitempty" yaml:"secret,omitempty"`
+	TokenParam   string   `json:"tokenParam,omitempty" toml:"tokenParam,omitempty" yaml:"tokenParam,omitempty"`
+	TokenSecret  string   `json:"tokenSecret,omitempty" toml:"tokenSecret,omitempty" yaml:"tokenSecret,omitempty"`
 	TokenPrefix  string   `json:"tokenPrefix,omitempty" toml:"tokenPrefix,omitempty" yaml:"tokenPrefix,omitempty"`
 	HeaderPrefix string   `json:"headerPrefix,omitempty" toml:"headerPrefix,omitempty" yaml:"headerPrefix,omitempty"`
 	WhiteList    []string `json:"whiteList,omitempty" toml:"whiteList,omitempty" yaml:"whiteList,omitempty"`
@@ -29,9 +32,9 @@ type Config struct {
 func CreateConfig() *Config {
 	return &Config{
 		WhiteList:    []string{},
-		Secrect:      DefaultSecret,
-		Param:        TokenParam,
-		HeaderPrefix: "X-Turing-",
+		TokenSecret:  DefaultSecret,
+		TokenParam:   TokenParam,
+		HeaderPrefix: HeaderPrefix,
 		TokenPrefix:  TokenPrefix,
 	}
 }
@@ -45,12 +48,14 @@ type JwtAuthor struct {
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	println("init" + name + " success")
+
+	//c, _ := json.Marshal(config)
+	println("init" + name + " success ")
 	return &JwtAuthor{
 		config:   *config,
 		next:     next,
 		name:     name,
-		tokenmgr: token.NewTokenManager(config.Secrect),
+		tokenmgr: token.NewTokenManager(config.TokenSecret),
 	}, nil
 }
 
@@ -63,13 +68,17 @@ func (r *JwtAuthor) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			break
 		}
 	}
+	msg := req.RequestURI + " not permited,please login "
 	// 如果没有过,那么直接采用鉴权策略
 	if !pass {
-		tokenstr := req.Header.Get(r.config.Param)
+		tokenstr := req.Header.Get(r.config.TokenParam)
 		tokenstr = strings.TrimPrefix(tokenstr, r.config.TokenPrefix)
-		tokenMap, err := r.tokenmgr.ParseToken(tokenstr)
-		if err != nil {
+		tokenMap, e1 := r.tokenmgr.ParseToken(tokenstr)
+		if e1 != nil {
+			msg = req.RequestURI + " 被拒绝,请先登录 "
 			pass = false
+		} else {
+			pass = true
 		}
 		for key, value := range tokenMap {
 			switch value := value.(type) {
@@ -89,10 +98,10 @@ func (r *JwtAuthor) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if pass {
 		r.next.ServeHTTP(rw, req)
 	} else {
+		rw.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(rw).Encode(map[string]any{
 			"code": 403,
-			"msg":  req.RequestURI + "not permited,please login",
+			"msg":  msg,
 		})
-		rw.WriteHeader(http.StatusForbidden)
 	}
 }

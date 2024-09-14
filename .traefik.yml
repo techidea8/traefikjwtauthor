@@ -6,3 +6,6 @@ testData:
   whiteList:
     - "/login"
   secret: rootme@123
+  param:  Authorization
+  tokenPrefix: 
+  headerPrefix: X-Turing-
